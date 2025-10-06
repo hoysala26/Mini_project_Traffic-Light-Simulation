@@ -1,0 +1,56 @@
+class TrafficSignal {
+    private String current = "RED";
+
+    public synchronized void changeLight(String color) {
+        try {
+            while (!current.equals(color)) wait();
+            System.out.println(color + " light ON");
+            Thread.sleep(getDuration(color));
+            System.out.println(color + " light OFF");
+
+            switch (color) {
+                case "RED": current = "GREEN"; break;
+                case "GREEN": current = "YELLOW"; break;
+                case "YELLOW": current = "RED"; break;
+            }
+            notifyAll();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private int getDuration(String color) {
+        switch (color) {
+            case "RED": return 3000;
+            case "GREEN": return 2000;
+            case "YELLOW": return 1000;
+        }
+        return 1000;
+    }
+}
+
+class TrafficLightThread extends Thread {
+    private TrafficSignal signal;
+    private String color;
+
+    TrafficLightThread(TrafficSignal signal, String color) {
+        this.signal = signal;
+        this.color = color;
+    }
+
+    public void run() {
+        while (true) {
+            signal.changeLight(color);
+        }
+    }
+}
+
+public class TrafficLightSimulation {
+    public static void main(String[] args) {
+        TrafficSignal signal = new TrafficSignal();
+
+        new TrafficLightThread(signal, "RED").start();
+        new TrafficLightThread(signal, "GREEN").start();
+        new TrafficLightThread(signal, "YELLOW").start();
+    }
+}
